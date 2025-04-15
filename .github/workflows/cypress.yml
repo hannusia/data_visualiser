@@ -23,12 +23,15 @@ jobs:
         run: npm install
 
       - name: Start the App
-        run: npm run start &
+        run: npx serve . -l 3000 &
         env:
           CI: true
+      
+      - name: Debug with curl
+        run: sleep 5 && curl -I http://localhost:3000 || true
 
       - name: Wait for App to Start
-        run: npx wait-on http://localhost:8000
+        run: npx wait-on http://localhost:3000
 
       - name: Run Cypress Tests
         run: npm run cy:run
