@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Data Visualiser</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header>
+    <h1>📊 Data Visualiser</h1>
+    <p>Upload your data and turn it into insights</p>
+  </header>
+
+  <main>
+    <section class="upload-section">
+      <input type="file" id="fileInput" accept=".csv,.json,.xlsx" />
+      <button id="loadBtn">Load Data</button>
+    </section>
+
+    <section id="previewSection" class="hidden">
+      <h2>📄 Data Preview</h2>
+      <div id="tablePreview"></div>
+    </section>
+
+    <section id="chartSection" class="hidden">
+      <h2>📈 Chart</h2>
+      <canvas id="chartCanvas"></canvas>
+    </section>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>
