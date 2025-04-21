@@ -3,8 +3,45 @@ const loadBtn = document.getElementById("loadBtn");
 const tablePreview = document.getElementById("tablePreview");
 const previewSection = document.getElementById("previewSection");
 const chartSection = document.getElementById("chartSection");
+const fileNameDisplay = document.getElementById("fileName");
+const dropArea = document.getElementById("dropArea");
 
 let chart; // Chart.js instance
+
+dropArea.addEventListener("click", () => {
+  fileInput.click();
+});
+
+dropArea.addEventListener("dragover", (e) => {
+  e.preventDefault();
+  dropArea.classList.add("dragover");
+});
+
+dropArea.addEventListener("dragleave", () => {
+  dropArea.classList.remove("dragover");
+});
+
+dropArea.addEventListener("drop", (e) => {
+  e.preventDefault();
+  dropArea.classList.remove("dragover");
+
+  const file = e.dataTransfer.files[0];
+  if (file) {
+    fileInput.files = e.dataTransfer.files; // Link the file to input
+    fileNameDisplay.textContent = file.name;
+    handleFile(file);
+  }
+});
+
+
+fileInput.addEventListener("change", () => {
+  const file = fileInput.files[0];
+  if (file) {
+    fileNameDisplay.textContent = file.name;
+    handleFile(file);
+  }
+});
+
 
 loadBtn.addEventListener("click", () => {
   const file = fileInput.files[0];
@@ -17,7 +54,7 @@ loadBtn.addEventListener("click", () => {
     Papa.parse(file, {
       header: true,
       dynamicTyping: true,
-      complete: function(results) {
+      complete: function (results) {
         showPreview(results.data);
         drawChart(results.data);
       },
@@ -79,4 +116,20 @@ function drawChart(data) {
   });
 
   chartSection.classList.remove("hidden");
+}
+
+function handleFile(file) {
+  if (!file.name.endsWith(".csv")) {
+    alert("Only CSV files are supported for now.");
+    return;
+  }
+
+  Papa.parse(file, {
+    header: true,
+    dynamicTyping: true,
+    complete: function (results) {
+      showPreview(results.data);
+      drawChart(results.data);
+    },
+  });
 }
