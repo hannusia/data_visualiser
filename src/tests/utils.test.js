@@ -91,7 +91,7 @@ describe('parseCsv', () => {
     const filePath = path.resolve(__dirname, 'fixtures/sample.scv');
     const csvData = fs.readFileSync(filePath, 'utf8');
     const result = parseCsv(csvData);
-  
+
     expect(result).toEqual([
       { name: 'Alice', age: 30 },
       { name: 'Bob', age: 25 }
@@ -101,40 +101,176 @@ describe('parseCsv', () => {
 
 
 
-test('parseJson returns expected object', () => {
-  const jsonData = '{"users":[{"name":"Alice","age":30},{"name":"Bob","age":25}]}';
-  const result = parseJson(jsonData);
+describe('parseJson', () => {
+  test('returns expected object for valid JSON', () => {
+    const jsonData = '{"users":[{"name":"Alice","age":30},{"name":"Bob","age":25}]}';
+    const result = parseJson(jsonData);
 
-  expect(result).toEqual({
-    users: [
-      { name: 'Alice', age: 30 },
-      { name: 'Bob', age: 25 }
-    ]
-  });
-});
-
-test('parseTxt returns expected array of lines', () => {
-  const txtData = 'First line\nSecond line\nThird line';
-  const result = parseTxt(txtData);
-
-  expect(result).toEqual(['First line', 'Second line', 'Third line']);
-});
-
-test('parseXml returns expected object', () => {
-  const xmlData = `
-    <users>
-      <user><name>Alice</name><age>30</age></user>
-      <user><name>Bob</name><age>25</age></user>
-    </users>
-  `;
-  const result = parseXml(xmlData);
-
-  expect(result).toEqual({
-    users: {
-      user: [
+    expect(result).toEqual({
+      users: [
         { name: 'Alice', age: 30 },
         { name: 'Bob', age: 25 }
       ]
-    }
+    });
+  });
+
+  test('returns null for invalid JSON', () => {
+    const badJson = '{"users":[{"name":"Alice""age":30}]}'; // missing comma
+    const result = parseJson(badJson);
+
+    expect(result).toBeNull();
+  });
+
+  test('returns null for non-JSON string', () => {
+    const notJson = 'just a regular string';
+    const result = parseJson(notJson);
+
+    expect(result).toBeNull();
+  });
+
+  test('returns null for undefined input', () => {
+    const result = parseJson(undefined);
+
+    expect(result).toBeNull();
+  });
+
+  test('parses JSON with nested objects correctly', () => {
+    const nestedJson = '{"config":{"theme":"dark","layout":{"header":true,"footer":false}}}';
+    const result = parseJson(nestedJson);
+
+    expect(result).toEqual({
+      config: {
+        theme: 'dark',
+        layout: {
+          header: true,
+          footer: false
+        }
+      }
+    });
+  });
+  test('parses JSON array correctly', () => {
+    const jsonArray = '[1, 2, 3, 4]';
+    const result = parseJson(jsonArray);
+
+    expect(result).toEqual([1, 2, 3, 4]);
+  });
+
+  test('parses stringified object with special characters', () => {
+    const specialCharsJson = '{"message":"Hello, world! \\"Hi!\\" \\n New line."}';
+    const result = parseJson(specialCharsJson);
+
+    expect(result).toEqual({
+      message: 'Hello, world! "Hi!" \n New line.'
+    });
+  });
+
+  test('throws no error and returns null on malformed JSON', () => {
+    const badJson = '{"a": [1, 2, {"b": }]}';
+    const result = parseJson(badJson);
+    expect(result).toBeNull();
+  });
+
+  test('returns null for empty string', () => {
+    const result = parseJson('');
+    expect(result).toBeNull();
+  });
+
+  test('returns null for non-string input (object)', () => {
+    const result = parseJson({ key: 'value' }); // not a string
+    expect(result).toBeNull();
   });
 });
+
+
+// test('parseTxt returns expected array of lines', () => {
+//   const txtData = 'First line\nSecond line\nThird line';
+//   const result = parseTxt(txtData);
+
+//   expect(result).toEqual(['First line', 'Second line', 'Third line']);
+// });
+
+describe('parseXml', () => {
+  test('returns expected object for valid XML', () => {
+    const xmlData = `
+      <users>
+        <user><name>Alice</name><age>30</age></user>
+        <user><name>Bob</name><age>25</age></user>
+      </users>
+    `;
+    const result = parseXml(xmlData);
+
+    expect(result).toEqual({
+      users: {
+        user: [
+          { name: 'Alice', age: 30 },  // XML values are often strings by default
+          { name: 'Bob', age: 25 }
+        ]
+      }
+    });
+  });
+
+  test('parses XML with nested elements correctly', () => {
+    const xmlData = `
+      <config>
+        <theme>dark</theme>
+        <layout>
+          <header>true</header>
+          <footer>false</footer>
+        </layout>
+      </config>
+    `;
+    const result = parseXml(xmlData);
+
+    expect(result).toEqual({
+      config: {
+        theme: 'dark',
+        layout: {
+          header: true,
+          footer: false
+        }
+      }
+    });
+  });
+
+  test('parses single element XML', () => {
+    const xmlData = `<status>success</status>`;
+    const result = parseXml(xmlData);
+
+    expect(result).toEqual({ status: 'success' });
+  });
+
+  test('parses XML with attributes', () => {
+    const xmlData = `
+      <user id="1">
+        <name>Alice</name>
+        <age>30</age>
+      </user>
+    `;
+    const result = parseXml(xmlData);
+
+    expect(result).toEqual({
+      user: {
+        "@_id": '1',
+        name: 'Alice',
+        age: 30
+      }
+    });
+  });
+
+  test('handles XML with mixed content', () => {
+    const xmlData = `
+      <message>
+        <text>Hello</text>
+        <text>world!</text>
+      </message>
+    `;
+    const result = parseXml(xmlData);
+
+    expect(result).toEqual({
+      message: {
+        text: ['Hello', 'world!']
+      }
+    });
+  });
+});
+
