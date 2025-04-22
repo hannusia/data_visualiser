@@ -119,17 +119,16 @@ function drawChart(data) {
 }
 
 function handleFile(file) {
-  if (!file.name.endsWith(".csv")) {
+  if (file.name.endsWith(".csv")) {
+    Papa.parse(file, {
+      header: true,
+      dynamicTyping: true,
+      complete: function (results) {
+        showPreview(results.data);
+        drawChart(results.data);
+      },
+    });
+  } else {
     alert("Only CSV files are supported for now.");
-    return;
   }
-
-  Papa.parse(file, {
-    header: true,
-    dynamicTyping: true,
-    complete: function (results) {
-      showPreview(results.data);
-      drawChart(results.data);
-    },
-  });
 }

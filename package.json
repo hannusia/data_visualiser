@@ -13,6 +13,7 @@
   "type": "commonjs",
   "devDependencies": {
     "cypress": "^14.3.0",
+    "cypress-file-upload": "^5.0.8",
     "wait-on": "^8.0.3"
   }
 }

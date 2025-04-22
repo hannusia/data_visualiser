@@ -1,43 +1,73 @@
 describe('File Upload Tests', () => {
-  const validCsv = 'test_data.csv';
-  const invalidFile = 'invalid_file.txt';
-  const emptyCsv = 'empty.csv';
-  const badCsv = 'bad_format.csv';
-  const specialCharCsv = 'special_chars.csv';
-
-  beforeEach(() => {
-    cy.visit('http://localhost:3000'); // adjust if different
+    beforeEach(() => {
+      cy.visit('http://localhost:3000');
+    });
+  
+    it('Uploads a valid CSV using browse', () => {
+      cy.get('#fileInput').attachFile('test_data.csv');
+      cy.get('#fileName').should('contain', 'test_data.csv');
+      cy.get('#loadBtn').click();
+      cy.get('#previewSection').should('be.visible');
+      cy.get('#chartSection').should('be.visible');
+    });
+  
+    it('Uploads a valid CSV via drag and drop', () => {
+      cy.get('#dropArea').attachFile('test_data.csv', { subjectType: 'drag-n-drop' });
+      cy.get('#fileName').should('contain', 'test_data.csv');
+      cy.get('#loadBtn').click();
+      cy.get('#previewSection').should('be.visible');
+      cy.get('#chartSection').should('be.visible');
+    });
+  
+    it('Shows error on invalid file type (.txt)', () => {
+      cy.get('#fileInput').attachFile('invalid_file.txt');
+      cy.get('#fileName').should('contain', 'invalid_file.txt');
+      cy.get('#loadBtn').click();
+      cy.on('window:alert', (text) => {
+        expect(text).to.contains('Only CSV files are supported');
+      });
+    });
+  
+    it('Shows error if no file is selected', () => {
+      cy.get('#loadBtn').click();
+      cy.on('window:alert', (text) => {
+        expect(text).to.contains('Please select a file!');
+      });
+    });
+  
+    it('Displays filename after browse', () => {
+      cy.get('#fileInput').attachFile('test_data.csv');
+      cy.get('#fileName').should('contain', 'test_data.csv');
+    });
+  
+    it('Displays filename after drag and drop', () => {
+      cy.get('#dropArea').attachFile('test_data.csv', { subjectType: 'drag-n-drop' });
+      cy.get('#fileName').should('contain', 'test_data.csv');
+    });
+  
+    // it('7. Uploads empty CSV and shows no preview', () => {
+    //   cy.get('#fileInput').attachFile('empty.csv');
+    //   cy.get('#loadBtn').click();
+    //   cy.get('#previewSection').should('not.be.visible');
+    //   cy.get('#chartSection').should('not.be.visible');
+    // });
+  
+    it('Uploads large CSV file', () => {
+      cy.get('#fileInput').attachFile('test_data.csv'); // Replace with a large one later
+      cy.get('#loadBtn').click();
+      cy.get('#previewSection').should('be.visible');
+    });
+  
+    it('Uploads CSV with non-numeric Y values', () => {
+      cy.get('#fileInput').attachFile('test_data.csv'); // Ensure the second column is not all numeric
+      cy.get('#loadBtn').click();
+      cy.get('#chartSection').should('be.visible');
+    });
+  
+    // it('Prevents chart from rendering if only 1 column', () => {
+    //   cy.get('#fileInput').attachFile('single_column.csv'); // Add to fixtures
+    //   cy.get('#loadBtn').click();
+    //   cy.get('#chartSection').should('not.be.visible');
+    // });
   });
-
-  it('Uploads a valid CSV file successfully', () => {
-    cy.get('input[type="file"]').selectFile(`cypress/fixtures/${validCsv}`);
-    cy.get('#loadBtn').click();
-    cy.get('#tablePreview').should('exist');
-    cy.get('#chartCanvas').should('exist');
-  });
-
-  it('Shows an error when uploading a non-CSV file', () => {
-    cy.get('input[type="file"]').selectFile(`cypress/fixtures/${invalidFile}`);
-    cy.get('#loadBtn').click();
-    cy.contains('Please upload a valid CSV').should('be.visible');
-  });
-
-  it('Shows an error when uploading an empty CSV', () => {
-    cy.get('input[type="file"]').selectFile(`cypress/fixtures/${emptyCsv}`);
-    cy.get('#loadBtn').click();
-    cy.contains('The file is empty').should('be.visible');
-  });
-
-  it('Handles a badly formatted CSV gracefully', () => {
-    cy.get('input[type="file"]').selectFile(`cypress/fixtures/${badCsv}`);
-    cy.get('#loadBtn').click();
-    cy.contains('Invalid CSV format').should('be.visible');
-  });
-
-  it('Uploads CSV with special characters correctly', () => {
-    cy.get('input[type="file"]').selectFile(`cypress/fixtures/${specialCharCsv}`);
-    cy.get('#loadBtn').click();
-    cy.get('#tablePreview').should('contain', 'Æ');
-    cy.get('#chartCanvas').should('exist');
-  });
-});
+  

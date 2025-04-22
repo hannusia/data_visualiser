@@ -23,7 +23,7 @@ jobs:
         run: npm install
 
       - name: Start the App
-        run: npx serve . -l 3000 &
+        run: npx serve src -l 3000 &
         env:
           CI: true
       
