@@ -1,0 +1,66 @@
+name: CI Pipeline - Data Visualiser
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      - name: Install Dependencies
+        run: npm install
+
+      - name: Lint Code
+        run: npx eslint src/ || true
+
+      - name: Versioning (Semantic)
+        run: |
+          echo "BUILD_VERSION=$(date +'%Y.%m.%d')-$(git rev-parse --short HEAD)" >> $GITHUB_ENV
+
+      - name: Build Report
+        run: |
+          echo "Build Version: $BUILD_VERSION"
+          echo "Branch: ${{ github.ref }}"
+          echo "Commit: ${{ github.sha }}"
+          echo "Triggered by: ${{ github.actor }}"
+
+      - name: Run Unit Tests with Coverage
+        run: npm test -- --coverage
+        env:
+          CI: true
+
+      - name: Upload Code Coverage Report
+        uses: actions/upload-artifact@v3
+        with:
+          name: coverage-report
+          path: coverage
+
+      - name: Start App
+        run: npx serve src -l 3000 &
+        env:
+          CI: true
+
+      - name: Wait for App to Start
+        run: npx wait-on http://localhost:3000
+
+      - name: Run Cypress Tests
+        run: npx cypress run
+
+      - name: Upload Cypress Report
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: cypress-report
+          path: cypress/report
