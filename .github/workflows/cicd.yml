@@ -67,10 +67,15 @@ jobs:
         with:
           name: cypress-report
           path: reports
+
       - name: Deploy to GitHub Pages
         if: github.ref == 'refs/heads/main'
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./src
+
+      - name: Health Check
+        run: curl -f https://hannusia.github.io/data_visualiser/ || exit 1
+
 
